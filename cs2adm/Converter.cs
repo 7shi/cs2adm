@@ -120,6 +120,8 @@ namespace Andromeda
                 this.ReadClass(access);
             else if (this.cur.Text == "enum")
                 this.ReadEnum(access);
+            else if (this.cur.Text == "abstract")
+                this.MoveNext();
             else
                 throw this.Abort("not supported");
         }
@@ -172,23 +174,30 @@ namespace Andromeda
             Debug.WriteLine("{{");
             this.MoveNext();
             while (this.cur != this.last && this.cur.Text != "}")
-                this.ReadMember("private", false);
+                this.ReadMember("private", false, null);
             this.MoveNext();
             Debug.WriteLine("}}");
         }
 
-        private void ReadMember(string access, bool isStatic)
+        private void ReadMember(string access, bool isStatic, string opt)
         {
-            if (this.cur.Text == "static")
+            var token = this.cur.Text;
+            if (token == "static")
             {
                 this.MoveNext();
-                this.ReadMember(access, true);
+                this.ReadMember(access, true, opt);
             }
-            else if (Converter.IsAccess(this.cur.Text))
+            else if (token == "abstract"
+                || token == "virtual"
+                || token == "override")
             {
-                var acc = this.cur.Text;
                 this.MoveNext();
-                this.ReadMember(acc, isStatic);
+                this.ReadMember(access, isStatic, token);
+            }
+            else if (Converter.IsAccess(token))
+            {
+                this.MoveNext();
+                this.ReadMember(token, isStatic, opt);
             }
             else
             {
@@ -196,7 +205,7 @@ namespace Andromeda
                 switch (this.cur.Text)
                 {
                     case "(":
-                        this.ReadMethod(tn.Name, tn.Type, access, isStatic);
+                        this.ReadMethod(tn.Name, tn.Type, access, isStatic, opt);
                         break;
                     case ";":
                         this.ReadField(tn.Name, tn.Type, access, isStatic);
@@ -301,7 +310,7 @@ namespace Andromeda
                 Debug.WriteLine("var {0} : {1};", name, t);
         }
 
-        private void ReadMethod(string name, string t, string access, bool isStatic)
+        private void ReadMethod(string name, string t, string access, bool isStatic, string opt)
         {
             Debug.WriteLine();
             Debug.Write("    ");
@@ -316,17 +325,33 @@ namespace Andromeda
             }
             else
             {
-                Debug.Write("function {0}(", name);
+                if (opt == null)
+                    Debug.Write("function");
+                else if (opt == "abstract")
+                    Debug.Write("virtual");
+                else
+                    Debug.Write(opt);
+                Debug.Write(" {0}(", name);
                 this.MoveNext();
                 this.ReadArgs();
                 if (t == "void")
-                    Debug.WriteLine(")");
+                    Debug.Write(")");
                 else
-                    Debug.WriteLine(") : {0}", t);
+                    Debug.Write(") : {0}", t);
+                if (opt == "abstract") Debug.Write(" {{}}");
+                Debug.WriteLine();
             }
-            if (this.cur.Text != "{") throw this.Abort("block required");
-            this.indent = "    ";
-            this.ReadBlock();
+            if (opt == "abstract")
+            {
+                if (this.cur.Text != ";") throw this.Abort("must be ';'");
+                this.MoveNext();
+            }
+            else
+            {
+                if (this.cur.Text != "{") throw this.Abort("block required");
+                this.indent = "    ";
+                this.ReadBlock();
+            }
         }
 
         private void ReadArgs()
