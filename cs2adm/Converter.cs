@@ -302,6 +302,7 @@ namespace Andromeda
         public static bool IsPrimitive(string t)
         {
             return t == "bool"
+                || t == "sbyte"
                 || t == "byte"
                 || t == "char"
                 || t == "short"
