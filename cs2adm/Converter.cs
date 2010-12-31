@@ -471,9 +471,6 @@ namespace Andromeda
                 case "for":
                     this.ReadFor();
                     break;
-                case "continue":
-                case "break":
-                    throw this.Abort("not supported");
                 case "throw":
                     this.MoveNext();
                     Debug.Write(this.indent);
@@ -686,6 +683,8 @@ namespace Andromeda
                     throw this.Abort("syntax error");
             }
             this.MoveNext();
+            Debug.Write(this.indent);
+            Debug.WriteLine("}}");
         }
 
         private void ReadCaseBlock()
