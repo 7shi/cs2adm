@@ -128,26 +128,36 @@ namespace Andromeda
 
         private void ReadEnum(string access)
         {
+            var dic = new Dictionary<string, int>();
             this.MoveNext();
             var name = this.cur.Text;
             this.MoveNext();
             Debug.WriteLine();
-            Debug.WriteLine("class {0}", name);
+            Debug.WriteLine("struct {0}", name);
             if (this.cur.Text != "{") throw this.Abort("must be '{'");
             Debug.WriteLine("{{");
             this.MoveNext();
             var v = 0;
             while (this.cur != this.last && this.cur.Text != "}")
             {
+                string val = v.ToString();
                 var id = this.cur.Text;
                 this.MoveNext();
                 if (this.cur.Text == "=")
                 {
                     this.MoveNext();
-                    v = Int32.Parse(this.cur.Text);
+                    if (Int32.TryParse(this.cur.Text, out v))
+                        val = v.ToString();
+                    else
+                    {
+                        val = this.cur.Text;
+                        v = dic[val];
+                    }
                     this.MoveNext();
                 }
-                Debug.WriteLine("    const int {0} = {1};", id, v);
+                Debug.WriteLine("    static function get_{0} {{ return ({1}){2}; }}",
+                    id, name, val);
+                dic.Add(id, v);
                 v = v + 1;
                 if (this.cur.Text == ",") this.MoveNext();
             }
