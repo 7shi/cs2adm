@@ -649,7 +649,8 @@ namespace Andromeda
             this.MoveNext();
             this.ReadExpr(false);
             Debug.WriteLine(")");
-            Debug.Write("{0}{{", this.indent);
+            Debug.Write(this.indent);
+            Debug.WriteLine("{{");
             if (this.cur.Text != "{") throw this.Abort("must be '{'");
             this.MoveNext();
             while (this.cur.Text != "}")
@@ -683,7 +684,6 @@ namespace Andromeda
 
         private void ReadCaseBlock()
         {
-            Debug.WriteLine();
             var bak = this.indent;
             this.indent = this.indent + "    ";
             while (this.cur.Text != "break" && this.cur.Text != "return" && this.cur.Text != "throw")
