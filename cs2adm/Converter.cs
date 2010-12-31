@@ -280,12 +280,25 @@ namespace Andromeda
             this.MakeField(name, t, access, isStatic);
         }
 
+        public static bool IsPrimitive(string t)
+        {
+            return t == "bool"
+                || t == "byte"
+                || t == "char"
+                || t == "short"
+                || t == "ushort"
+                || t == "int"
+                || t == "uint";
+        }
+
         private void MakeField(string name, string t, string access, bool isStatic)
         {
             Debug.Write("    ");
             if (isStatic) Debug.Write("static ");
-            Debug.Write("var ");
-            Debug.WriteLine("{0} : {1};", name, t);
+            if (IsPrimitive(t))
+                Debug.WriteLine("{1} {0};", name, t);
+            else
+                Debug.WriteLine("var {0} : {1};", name, t);
         }
 
         private void ReadMethod(string name, string t, string access, bool isStatic)
@@ -422,9 +435,9 @@ namespace Andromeda
                 case "throw":
                     this.MoveNext();
                     Debug.Write(this.indent);
-                    Debug.Write("raise <| ");
+                    Debug.Write("raise(");
                     this.ReadExpr(false);
-                    Debug.WriteLine();
+                    Debug.WriteLine(");");
                     break;
                 case "var":
                     this.ReadVar();
@@ -475,6 +488,16 @@ namespace Andromeda
                 }
                 else if (t == "delegate")
                     this.ReadDelegate();
+                else if (t == "int")
+                {
+                    this.MoveNext();
+                    Debug.Write("int ");
+                }
+                else if (t == "is" || t == "as")
+                {
+                    this.MoveNext();
+                    Debug.Write(" " + t + " ");
+                }
                 else if (t == "." || this.cur.Type != TokenType.Operator)
                 {
                     this.MoveNext();
@@ -497,10 +520,10 @@ namespace Andromeda
                     this.MoveNext();
                     Debug.Write(t);
                 }
-                else if (t == "[")
+                else if (t == "[" || t == "++" || t == "--")
                 {
                     this.MoveNext();
-                    Debug.Write(".[");
+                    Debug.Write(t);
                 }
                 else
                 {
@@ -533,7 +556,7 @@ namespace Andromeda
                 if (this.cur.Text == "if")
                 {
                     this.MoveNext();
-                    Debug.Write("else if ");
+                    Debug.Write("else if (");
                     this.ReadIfInternal();
                 }
                 else
