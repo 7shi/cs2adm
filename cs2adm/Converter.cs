@@ -140,14 +140,14 @@ namespace Andromeda
             var v = 0;
             while (this.cur != this.last && this.cur.Text != "}")
             {
-                string val = v.ToString();
+                string val = "(" + name + ")" + v;
                 var id = this.cur.Text;
                 this.MoveNext();
                 if (this.cur.Text == "=")
                 {
                     this.MoveNext();
                     if (Int32.TryParse(this.cur.Text, out v))
-                        val = v.ToString();
+                        val = "(" + name + ")" + v;
                     else
                     {
                         val = this.cur.Text;
@@ -155,8 +155,8 @@ namespace Andromeda
                     }
                     this.MoveNext();
                 }
-                Debug.WriteLine("    static function get_{0} {{ return ({1}){2}; }}",
-                    id, name, val);
+                Debug.WriteLine("    static function get_{0} {{ return {1}; }}",
+                    id, val);
                 dic.Add(id, v);
                 v = v + 1;
                 if (this.cur.Text == ",") this.MoveNext();
@@ -217,14 +217,13 @@ namespace Andromeda
                     case "(":
                         this.ReadMethod(tn.Name, tn.Type, access, isStatic, opt);
                         break;
+                    case "=":
                     case ";":
                         this.ReadField(tn.Name, tn.Type, access, isStatic);
                         break;
                     case "{":
                         this.ReadProperty(tn.Name, tn.Type, access, isStatic);
                         break;
-                    case "=":
-                        throw this.Abort("default value not supported");
                     default:
                         throw this.Abort("syntax error");
                 }
@@ -253,7 +252,7 @@ namespace Andromeda
                         this.MoveNext();
                         if (!autoField)
                         {
-                            this.MakeField("_" + name, t, "private", isStatic);
+                            this.MakeField("_" + name, t, "private", isStatic, "");
                             autoField = true;
                         }
                     }
@@ -295,8 +294,9 @@ namespace Andromeda
 
         private void ReadField(string name, string t, string access, bool isStatic)
         {
+            var opt = this.cur.Text;
             this.MoveNext();
-            this.MakeField(name, t, access, isStatic);
+            this.MakeField(name, t, access, isStatic, opt);
         }
 
         public static bool IsPrimitive(string t)
@@ -311,14 +311,20 @@ namespace Andromeda
                 || t == "uint";
         }
 
-        private void MakeField(string name, string t, string access, bool isStatic)
+        private void MakeField(string name, string t, string access, bool isStatic, string opt)
         {
             Debug.Write("    ");
             if (isStatic) Debug.Write("static ");
             if (IsPrimitive(t))
-                Debug.WriteLine("{1} {0};", name, t);
+                Debug.Write("{1} {0}", name, t);
             else
-                Debug.WriteLine("var {0} : {1};", name, t);
+                Debug.Write("var {0} : {1}", name, t);
+            if (opt == "=")
+            {
+                Debug.Write(" = ");
+                this.ReadExpr(false);
+            }
+            Debug.WriteLine(";");
         }
 
         private void ReadMethod(string name, string t, string access, bool isStatic, string opt)
