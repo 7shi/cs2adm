@@ -110,17 +110,17 @@ namespace Andromeda
 
         private void ReadNamespaceInternal(string access)
         {
-            if (Converter.IsAccess(this.cur.Text))
+            var token = this.cur.Text;
+            if (Converter.IsAccess(token))
             {
-                var acc = this.cur.Text;
                 this.MoveNext();
-                this.ReadNamespaceInternal(acc);
+                this.ReadNamespaceInternal(token);
             }
-            else if (this.cur.Text == "class")
+            else if (token == "class")
                 this.ReadClass(access);
-            else if (this.cur.Text == "enum")
+            else if (token == "enum")
                 this.ReadEnum(access);
-            else if (this.cur.Text == "abstract")
+            else if (token == "abstract" || token == "partial")
                 this.MoveNext();
             else
                 throw this.Abort("not supported");
