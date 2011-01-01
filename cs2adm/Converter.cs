@@ -116,7 +116,7 @@ namespace Andromeda
                 this.MoveNext();
                 this.ReadNamespaceInternal(token);
             }
-            else if (token == "class")
+            else if (token == "class" || token == "struct")
                 this.ReadClass(access);
             else if (token == "enum")
                 this.ReadEnum(access);
@@ -167,12 +167,12 @@ namespace Andromeda
 
         private void ReadClass(string access)
         {
+            var t = this.cur.Text;
             this.MoveNext();
             var name = this.cur.Text;
             this.MoveNext();
             Debug.WriteLine();
-            Debug.Write("class ");
-            Debug.Write("{0}", name);
+            Debug.Write("{0} {1}", t, name);
             if (this.cur.Text == ":")
             {
                 this.MoveNext();
@@ -545,7 +545,7 @@ namespace Andromeda
                 else if (t == "!")
                 {
                     this.MoveNext();
-                    Debug.Write("not ");
+                    Debug.Write("!");
                 }
                 else if (t == "~")
                 {
