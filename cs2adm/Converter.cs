@@ -454,9 +454,15 @@ namespace Andromeda
             switch (this.cur.Text)
             {
                 case "return":
-                    Debug.Write("{0}return ", indent);
+                    Debug.Write("{0}return", indent);
                     this.MoveNext();
-                    this.ReadExpr(false);
+                    if (this.cur.Text == ";")
+                        this.MoveNext();
+                    else
+                    {
+                        Debug.Write(" ");
+                        this.ReadExpr(false);
+                    }
                     Debug.WriteLine(";");
                     break;
                 case "if":
@@ -715,18 +721,21 @@ namespace Andromeda
             this.MoveNext();
             if (this.cur.Text != "(") throw this.Abort("argument required");
             this.MoveNext();
-            Debug.Write("(fun");
+            Debug.Write("\\(");
             while (this.cur.Text != ")")
             {
                 var tn = this.ReadDecl(true);
-                Debug.Write(" ({0} : {1})", tn.Name, tn.Type);
-                if (this.cur.Text == ",") this.MoveNext();
+                Debug.Write("{0} : {1}", tn.Name, tn.Type);
+                if (this.cur.Text == ",")
+                {
+                    Debug.Write(", ");
+                    this.MoveNext();
+                }
             }
             this.MoveNext();
-            Debug.WriteLine(" ->");
+            Debug.WriteLine(") =>");
             this.ReadBlock();
             Debug.Write(this.indent);
-            Debug.Write(")");
         }
 
         private void ReadArray()
