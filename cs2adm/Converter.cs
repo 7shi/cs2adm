@@ -556,7 +556,7 @@ namespace Andromeda
                 else if (t == "~")
                 {
                     this.MoveNext();
-                    Debug.Write("~~~");
+                    Debug.Write("~");
                 }
                 else if (Converter.noop.Contains(t))
                     throw this.Abort("not supported");
