@@ -222,7 +222,7 @@ namespace Andromeda
                         this.ReadField(tn.Name, tn.Type, access, isStatic);
                         break;
                     case "{":
-                        this.ReadProperty(tn.Name, tn.Type, access, isStatic);
+                        this.ReadProperty(tn.Name, tn.Type, access, isStatic, opt);
                         break;
                     default:
                         throw this.Abort("syntax error");
@@ -230,7 +230,7 @@ namespace Andromeda
             }
         }
 
-        private void ReadProperty(string name, string t, string access, bool isStatic)
+        private void ReadProperty(string name, string t, string access, bool isStatic, string opt)
         {
             var autoField = false;
             Debug.WriteLine();
@@ -258,7 +258,13 @@ namespace Andromeda
                     }
                     Debug.Write("    ");
                     if (isStatic) Debug.Write("static ");
-                    Debug.Write("function {0}_{1}", act, name);
+                    if (opt == null)
+                        Debug.Write("function");
+                    else if (opt == "abstract")
+                        Debug.Write("virtual");
+                    else
+                        Debug.Write(opt);
+                    Debug.Write(" {0}_{1}", act, name);
                     if (act == "get")
                     {
                         Debug.Write(" : {0}", t);
